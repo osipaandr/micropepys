@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5525B93D2F294C470067F16A /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5525B93C2F294C470067F16A /* .gitignore */; };
+		5525B93F2F294E210067F16A /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 5525B93E2F294E210067F16A /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,6 +30,7 @@
 
 /* Begin PBXFileReference section */
 		5525B93C2F294C470067F16A /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		5525B93E2F294E210067F16A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		55A7ED9C2EBD3A6A00D833F0 /* Micropepys.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Micropepys.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		55A7EDAB2EBD3A6C00D833F0 /* MicropepysTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MicropepysTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		55A7EDB52EBD3A6C00D833F0 /* MicropepysUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MicropepysUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -85,6 +87,7 @@
 				55A7EDB82EBD3A6C00D833F0 /* MicropepysUITests */,
 				55A7ED9D2EBD3A6A00D833F0 /* Products */,
 				5525B93C2F294C470067F16A /* .gitignore */,
+				5525B93E2F294E210067F16A /* README.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -218,6 +221,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5525B93F2F294E210067F16A /* README.md in Resources */,
 				5525B93D2F294C470067F16A /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
