@@ -11,6 +11,12 @@ DerivedData/
 *.perspectivev3
 !default.perspectivev3
 xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+!*.xcodeproj/xcshareddata/xcschemes/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
+*.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
 *.xcscmblueprint
 
 # SwiftPM
