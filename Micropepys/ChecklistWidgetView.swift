@@ -1,4 +1,5 @@
 import SwiftUI
+import MicropepysCore
 
 struct ChecklistWidgetView: View {
     @StateObject private var manager = ChecklistManager()
