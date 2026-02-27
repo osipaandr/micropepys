@@ -1,0 +1,82 @@
+{
+  "project": "Micropepys",
+  "updated_at": "2026-02-27",
+  "platform_scope": "macOS only (for now)",
+  "vision": "Create an easy macOS task-management tool that remains accessible as an overlay and can be updated through hotkey-triggered voice commands.",
+  "current_state": {
+    "overlay_todo_list": true,
+    "manual_editing_required": true,
+    "voice_hotkey_update": false
+  },
+  "goals": [
+    "Let users manage tasks without leaving their current app.",
+    "Convert natural-language dictation into task operations.",
+    "Support add, complete, and modify flows with minimal friction.",
+    "Eventually support all UN official languages (Arabic, Chinese, English, French, Russian, Spanish)."
+  ],
+  "milestones": [
+    {
+      "id": "M1",
+      "title": "Capture voice input after global hotkey",
+      "status": "planned",
+      "depends_on": []
+    },
+    {
+      "id": "M2",
+      "title": "Parse intent into checklist actions",
+      "status": "planned",
+      "depends_on": ["M1"]
+    },
+    {
+      "id": "M3",
+      "title": "Apply checklist updates safely and predictably",
+      "status": "planned",
+      "depends_on": ["M2"]
+    },
+    {
+      "id": "M4",
+      "title": "Add confirmation and undo UX",
+      "status": "planned",
+      "depends_on": ["M3"]
+    },
+    {
+      "id": "M5",
+      "title": "Add multilingual support for UN official languages",
+      "status": "planned",
+      "depends_on": ["M2", "M3", "M4"]
+    }
+  ],
+  "use_cases": [
+    {
+      "id": "UC1",
+      "title": "Voice-driven list mutation from any app",
+      "input_tasks": [
+        "Send a passport scan to HR chat",
+        "Prepare a presentation for Friday",
+        "Call the sales department"
+      ],
+      "voice_input": "I've sent a passport scan. I need to schedule a meeting with Orlando and start the laundry.",
+      "expected_tasks_example": [
+        "Prepare a presentation for Friday",
+        "Call the sales department",
+        "Schedule a meeting with Orlando",
+        "Start the laundry"
+      ],
+      "notes": "Exact wording may vary; intent should be preserved."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "context": "Need a persistent task-management interaction while users work in other apps.",
+      "decision": "Use overlay UI plus hotkey-triggered voice updates.",
+      "consequences": "Requires macOS global hotkey handling, accessibility and microphone permissions, and robust intent parsing."
+    },
+    {
+      "id": "D2",
+      "context": "Long-term product accessibility should cover globally used official UN languages.",
+      "decision": "Plan support for Arabic, Chinese, English, French, Russian, and Spanish after core English-like flow is stable.",
+      "consequences": "Needs locale-aware transcription, intent normalization, and multilingual QA."
+    }
+  ]
+}

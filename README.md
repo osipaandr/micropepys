@@ -11,9 +11,32 @@
 **This is a _work in progress_ (WIP) client application.**
 
 ## Project Purpose
-The goal of this app is to provide a persistent, always-accessible task list and enable users to manage their tasks using voice commands.
-- Always have your to-do list in front of you
-- Add, remove, and modify tasks with voice input
+The goal of this project is to create a tool for easy task management that is always available while working in any app.
+- Keep a persistent to-do list visible as an overlay.
+- Let users update that list without context-switching away from their current app.
+- Use a hotkey + voice dictation flow to add, complete, and edit tasks naturally.
+- Focus on macOS only for now.
+
+## Current State
+- The app currently provides an overlay to-do list.
+- Task editing is manual.
+
+## Target Workflow
+1. User presses a global hotkey while working in any app.
+2. User dictates a natural-language update.
+3. Micropepys interprets intent and updates the checklist.
+
+Example:
+- Existing list:
+  - Send a passport scan to HR chat
+  - Prepare a presentation for Friday
+  - Call the sales department
+- User says: "I've sent a passport scan. I need to schedule a meeting with Orlando and start the laundry."
+- Updated list (one possible result):
+  - Prepare a presentation for Friday
+  - Call the sales department
+  - Schedule a meeting with Orlando
+  - Start the laundry
 
 ---
 
