@@ -40,10 +40,8 @@ public final class ChecklistManager: ObservableObject {
                 let decodedItems = try decoder.decode([ChecklistItem].self, from: data)
                 self.items = decodedItems
             } catch {
-                self.items = []
+                // Keep default empty state when persisted payload is invalid.
             }
-        } else {
-            self.items = []
         }
     }
 
@@ -62,12 +60,10 @@ public final class ChecklistManager: ObservableObject {
         items
     }
 
-    @discardableResult
-    public func add(title: String) -> ChecklistItem {
+    public func add(title: String) {
         let item = ChecklistItem(title: title)
         items.append(item)
         persist()
-        return item
     }
 
     public func remove(id: UUID) {
@@ -120,4 +116,5 @@ public final class ChecklistManager: ObservableObject {
         items.insert(contentsOf: movingItems, at: clampedDestination)
         persist()
     }
+
 }

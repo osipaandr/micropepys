@@ -2,34 +2,37 @@ import XCTest
 @testable import MicropepysCore
 
 final class ChecklistManagerTests: XCTestCase {
+    // MARK: - readAll()
+
     func testReadAllReturnsStoredItems() throws {
-        let seeded = [
+        let expected = [
             ChecklistItem(title: "First"),
             ChecklistItem(title: "Second", isCompleted: true)
         ]
         let storage = InMemoryChecklistStorage()
-        seedStorage(storage: storage, with: seeded)
+        seedStorage(storage: storage, with: expected)
 
         let manager = ChecklistManager(storage: storage)
+        let result = manager.readAll()
 
-        XCTAssertEqual(manager.readAll(), seeded)
+        XCTAssertEqual(result, expected)
     }
+
+    // MARK: - add(title:)
 
     func testAddAppendsItemAndPersists() throws {
         let storage = InMemoryChecklistStorage()
         let manager = ChecklistManager(storage: storage)
 
-        let added = manager.add(title: "New task")
-
-        XCTAssertEqual(manager.readAll().count, 1)
-        XCTAssertEqual(manager.readAll().first?.title, "New task")
-        XCTAssertEqual(manager.readAll().first?.id, added.id)
-        XCTAssertFalse(manager.readAll().first?.isCompleted ?? true)
-
+        manager.add(title: "New task")
+        let current = manager.readAll()
         let reloaded = ChecklistManager(storage: storage)
-        XCTAssertEqual(reloaded.readAll().count, 1)
-        XCTAssertEqual(reloaded.readAll().first?.title, "New task")
+        let persisted = reloaded.readAll()
+
+        XCTAssertEqual(current, persisted)
     }
+
+    // MARK: - remove(id:)
 
     func testRemoveByIDDeletesMatchingItem() throws {
         let first = ChecklistItem(title: "Keep")
@@ -39,8 +42,9 @@ final class ChecklistManagerTests: XCTestCase {
         let manager = ChecklistManager(storage: storage)
 
         manager.remove(id: second.id)
+        let result = manager.readAll()
 
-        XCTAssertEqual(manager.readAll(), [first])
+        XCTAssertEqual(result, [first])
     }
 
     func testRemoveByIDWithUnknownIDDoesNothing() throws {
@@ -50,9 +54,12 @@ final class ChecklistManagerTests: XCTestCase {
         let manager = ChecklistManager(storage: storage)
 
         manager.remove(id: UUID())
+        let result = manager.readAll()
 
-        XCTAssertEqual(manager.readAll(), [first])
+        XCTAssertEqual(result, [first])
     }
+
+    // MARK: - remove(at:)
 
     func testRemoveAtOffsetsDeletesItemsAtOffsets() throws {
         let first = ChecklistItem(title: "First")
@@ -63,9 +70,12 @@ final class ChecklistManagerTests: XCTestCase {
         let manager = ChecklistManager(storage: storage)
 
         manager.remove(at: IndexSet(integer: 1))
+        let result = manager.readAll()
 
-        XCTAssertEqual(manager.readAll(), [first, third])
+        XCTAssertEqual(result, [first, third])
     }
+
+    // MARK: - toggle(id:)
 
     func testToggleFlipsCompletionState() throws {
         let item = ChecklistItem(title: "Task", isCompleted: false)
@@ -74,10 +84,10 @@ final class ChecklistManagerTests: XCTestCase {
         let manager = ChecklistManager(storage: storage)
 
         manager.toggle(id: item.id)
-        XCTAssertTrue(manager.readAll().first?.isCompleted ?? false)
-
         manager.toggle(id: item.id)
-        XCTAssertFalse(manager.readAll().first?.isCompleted ?? true)
+        let result = manager.readAll()
+
+        XCTAssertEqual(result, [item])
     }
 
     func testToggleWithUnknownIDDoesNothing() throws {
@@ -87,9 +97,12 @@ final class ChecklistManagerTests: XCTestCase {
         let manager = ChecklistManager(storage: storage)
 
         manager.toggle(id: UUID())
+        let result = manager.readAll()
 
-        XCTAssertEqual(manager.readAll(), [item])
+        XCTAssertEqual(result, [item])
     }
+
+    // MARK: - update(id:title:isCompleted:)
 
     func testUpdateCanChangeTitleAndCompletion() throws {
         let item = ChecklistItem(title: "Old", isCompleted: false)
@@ -98,9 +111,9 @@ final class ChecklistManagerTests: XCTestCase {
         let manager = ChecklistManager(storage: storage)
 
         manager.update(id: item.id, title: "New", isCompleted: true)
+        let result = manager.readAll()
 
-        XCTAssertEqual(manager.readAll().first?.title, "New")
-        XCTAssertTrue(manager.readAll().first?.isCompleted ?? false)
+        XCTAssertEqual(result, [ChecklistItem(id: item.id, title: "New", isCompleted: true, createdAt: item.createdAt)])
     }
 
     func testUpdateWithUnknownIDDoesNothing() throws {
@@ -110,9 +123,12 @@ final class ChecklistManagerTests: XCTestCase {
         let manager = ChecklistManager(storage: storage)
 
         manager.update(id: UUID(), title: "Changed", isCompleted: true)
+        let result = manager.readAll()
 
-        XCTAssertEqual(manager.readAll(), [item])
+        XCTAssertEqual(result, [item])
     }
+
+    // MARK: - clearCompleted()
 
     func testClearCompletedRemovesOnlyCompletedItems() throws {
         let active = ChecklistItem(title: "Active", isCompleted: false)
@@ -122,9 +138,12 @@ final class ChecklistManagerTests: XCTestCase {
         let manager = ChecklistManager(storage: storage)
 
         manager.clearCompleted()
+        let result = manager.readAll()
 
-        XCTAssertEqual(manager.readAll(), [active])
+        XCTAssertEqual(result, [active])
     }
+
+    // MARK: - move(from:to:)
 
     func testMoveReordersItems() throws {
         let first = ChecklistItem(title: "First")
@@ -135,8 +154,9 @@ final class ChecklistManagerTests: XCTestCase {
         let manager = ChecklistManager(storage: storage)
 
         manager.move(from: IndexSet(integer: 0), to: 3)
+        let result = manager.readAll()
 
-        XCTAssertEqual(manager.readAll(), [second, third, first])
+        XCTAssertEqual(result, [second, third, first])
     }
 
     private func seedStorage(storage: InMemoryChecklistStorage, with items: [ChecklistItem]) {
