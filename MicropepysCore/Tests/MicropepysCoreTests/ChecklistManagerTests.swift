@@ -16,6 +16,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, expected)
+        XCTAssertEqual(manager.history, [expected])
     }
 
     // MARK: - add(title:)
@@ -30,6 +31,7 @@ final class ChecklistManagerTests: XCTestCase {
         let persisted = reloaded.readAll()
 
         XCTAssertEqual(current, persisted)
+        XCTAssertEqual(manager.history, [[], current])
     }
 
     // MARK: - remove(id:)
@@ -45,6 +47,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [first])
+        XCTAssertEqual(manager.history, [[first, second], [first]])
     }
 
     func testRemoveByIDWithUnknownIDDoesNothing() throws {
@@ -57,6 +60,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [first])
+        XCTAssertEqual(manager.history, [[first]])
     }
 
     // MARK: - remove(at:)
@@ -73,6 +77,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [first, third])
+        XCTAssertEqual(manager.history, [[first, second, third], [first, third]])
     }
 
     // MARK: - toggle(id:)
@@ -88,6 +93,14 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [item])
+        XCTAssertEqual(
+            manager.history,
+            [
+                [item],
+                [ChecklistItem(id: item.id, title: item.title, isCompleted: true, createdAt: item.createdAt)],
+                [item]
+            ]
+        )
     }
 
     func testToggleWithUnknownIDDoesNothing() throws {
@@ -100,6 +113,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [item])
+        XCTAssertEqual(manager.history, [[item]])
     }
 
     // MARK: - update(id:title:isCompleted:)
@@ -112,8 +126,10 @@ final class ChecklistManagerTests: XCTestCase {
 
         manager.update(id: item.id, title: "New", isCompleted: true)
         let result = manager.readAll()
+        let updated = [ChecklistItem(id: item.id, title: "New", isCompleted: true, createdAt: item.createdAt)]
 
-        XCTAssertEqual(result, [ChecklistItem(id: item.id, title: "New", isCompleted: true, createdAt: item.createdAt)])
+        XCTAssertEqual(result, updated)
+        XCTAssertEqual(manager.history, [[item], updated])
     }
 
     func testUpdateWithUnknownIDDoesNothing() throws {
@@ -126,6 +142,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [item])
+        XCTAssertEqual(manager.history, [[item]])
     }
 
     // MARK: - clearCompleted()
@@ -141,6 +158,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [active])
+        XCTAssertEqual(manager.history, [[active, done], [active]])
     }
 
     // MARK: - move(from:to:)
@@ -157,6 +175,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [second, third, first])
+        XCTAssertEqual(manager.history, [[first, second, third], [second, third, first]])
     }
 
     // MARK: - undo()
@@ -169,6 +188,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [])
+        XCTAssertEqual(manager.history, [[]])
     }
 
     func testUndoRevertsAddMutation() throws {
@@ -181,6 +201,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, expected)
+        XCTAssertEqual(manager.history, [expected])
     }
 
     func testUndoRevertsToggleMutation() throws {
@@ -194,6 +215,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [item])
+        XCTAssertEqual(manager.history, [[item]])
     }
 
     func testUndoRevertsUpdateMutation() throws {
@@ -207,6 +229,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [item])
+        XCTAssertEqual(manager.history, [[item]])
     }
 
     func testUndoRevertsRemoveByIDMutation() throws {
@@ -221,6 +244,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [first, second])
+        XCTAssertEqual(manager.history, [[first, second]])
     }
 
     func testUndoRevertsRemoveAtMutation() throws {
@@ -236,6 +260,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [first, second, third])
+        XCTAssertEqual(manager.history, [[first, second, third]])
     }
 
     func testUndoRevertsClearCompletedMutation() throws {
@@ -250,6 +275,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [active, done])
+        XCTAssertEqual(manager.history, [[active, done]])
     }
 
     func testUndoRevertsMoveMutation() throws {
@@ -265,6 +291,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [first, second, third])
+        XCTAssertEqual(manager.history, [[first, second, third]])
     }
 
     func testUndoAfterNoOpMutationDoesNothing() throws {
@@ -278,6 +305,7 @@ final class ChecklistManagerTests: XCTestCase {
         let result = manager.readAll()
 
         XCTAssertEqual(result, [item])
+        XCTAssertEqual(manager.history, [[item]])
     }
 
     private func seedStorage(storage: InMemoryChecklistStorage, with items: [ChecklistItem]) {
