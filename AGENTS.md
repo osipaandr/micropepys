@@ -11,7 +11,7 @@ Shared cross-app guidance lives in `../AGENTS.md`.
 - Preserve or use metadata to support undo behavior.
 
 ## Operation Handling Rules
-- Execute only explicit operations (`complete[]`, `add[]`, `edit[]`).
+- Execute only explicit operations (`complete`, `add`, `edit`, `remove`, `move`).
 - Do not execute freeform model text as actions.
 - If operation payload is ambiguous or missing required fields, fail safely and request confirmation.
 
