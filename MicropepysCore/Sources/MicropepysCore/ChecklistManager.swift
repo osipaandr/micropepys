@@ -22,6 +22,14 @@ public struct ChecklistItem: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
+public enum ChecklistOperation: Sendable {
+    case complete(id: UUID)
+    case add(title: String)
+    case edit(id: UUID, title: String? = nil, isCompleted: Bool? = nil)
+    case remove(id: UUID)
+    case move(source: IndexSet, destination: Int)
+}
+
 public final class ChecklistManager: ObservableObject {
     @Published public private(set) var items: [ChecklistItem] = []
     public private(set) var history: [[ChecklistItem]] = []
@@ -147,6 +155,65 @@ public final class ChecklistManager: ObservableObject {
         guard history.count > 1 else { return }
         history.removeLast()
         items = history.last ?? []
+        persist()
+    }
+
+    public func apply(operations: [ChecklistOperation]) {
+        guard !operations.isEmpty else { return }
+
+        var updatedItems = items
+        var hasChanges = false
+
+        for operation in operations {
+            switch operation {
+            case let .complete(id):
+                guard let index = updatedItems.firstIndex(where: { $0.id == id }) else { continue }
+                guard !updatedItems[index].isCompleted else { continue }
+                updatedItems[index].isCompleted = true
+                hasChanges = true
+
+            case let .add(title):
+                updatedItems.append(ChecklistItem(title: title))
+                hasChanges = true
+
+            case let .edit(id, title, isCompleted):
+                guard let index = updatedItems.firstIndex(where: { $0.id == id }) else { continue }
+                let previous = updatedItems[index]
+                var next = previous
+                if let title = title {
+                    next.title = title
+                }
+                if let isCompleted = isCompleted {
+                    next.isCompleted = isCompleted
+                }
+                guard next != previous else { continue }
+                updatedItems[index] = next
+                hasChanges = true
+
+            case let .remove(id):
+                guard let index = updatedItems.firstIndex(where: { $0.id == id }) else { continue }
+                updatedItems.remove(at: index)
+                hasChanges = true
+
+            case let .move(source, destination):
+                let validSource = source.sorted().filter { updatedItems.indices.contains($0) }
+                guard !validSource.isEmpty else { continue }
+                guard validSource.count > 1 || (validSource.first != destination && validSource.first != destination - 1) else { continue }
+
+                var movingItems: [ChecklistItem] = []
+                for index in validSource.reversed() {
+                    movingItems.insert(updatedItems.remove(at: index), at: 0)
+                }
+
+                let clampedDestination = max(0, min(destination, updatedItems.count))
+                updatedItems.insert(contentsOf: movingItems, at: clampedDestination)
+                hasChanges = true
+            }
+        }
+
+        guard hasChanges else { return }
+        items = updatedItems
+        recordCurrentState()
         persist()
     }
 

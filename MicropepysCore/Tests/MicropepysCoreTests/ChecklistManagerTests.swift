@@ -308,6 +308,116 @@ final class ChecklistManagerTests: XCTestCase {
         XCTAssertEqual(manager.history, [[item]])
     }
 
+    // MARK: - apply(operations:)
+
+    func testApplyOperationsRunsBatchInOrder() throws {
+        let first = ChecklistItem(title: "Passport", isCompleted: false)
+        let second = ChecklistItem(title: "Presentation", isCompleted: false)
+        let storage = InMemoryChecklistStorage()
+        seedStorage(storage: storage, with: [first, second])
+        let manager = ChecklistManager(storage: storage)
+
+        manager.apply(operations: [
+            .complete(id: first.id),
+            .add(title: "Start the laundry"),
+            .edit(id: second.id, title: "Prepare Friday presentation", isCompleted: nil)
+        ])
+        let result = manager.readAll()
+        let added = result[2]
+
+        XCTAssertEqual(result, [
+            ChecklistItem(id: first.id, title: first.title, isCompleted: true, createdAt: first.createdAt),
+            ChecklistItem(id: second.id, title: "Prepare Friday presentation", isCompleted: false, createdAt: second.createdAt),
+            ChecklistItem(id: added.id, title: "Start the laundry", isCompleted: false, createdAt: added.createdAt)
+        ])
+        XCTAssertEqual(manager.history, [[first, second], result])
+    }
+
+    func testUndoAfterApplyRevertsWholeBatch() throws {
+        let first = ChecklistItem(title: "Passport", isCompleted: false)
+        let second = ChecklistItem(title: "Presentation", isCompleted: false)
+        let storage = InMemoryChecklistStorage()
+        seedStorage(storage: storage, with: [first, second])
+        let manager = ChecklistManager(storage: storage)
+
+        let expectedBefore = [first, second]
+        manager.apply(operations: [
+            .complete(id: first.id),
+            .edit(id: second.id, title: "Prepare Friday presentation", isCompleted: nil)
+        ])
+
+        manager.undo()
+        let result = manager.readAll()
+
+        XCTAssertEqual(result, expectedBefore)
+        XCTAssertEqual(manager.history, [expectedBefore])
+    }
+
+    func testApplyWithEmptyOperationsIsNoOpAndDoesNotChangeHistory() throws {
+        let first = ChecklistItem(title: "Passport", isCompleted: false)
+        let second = ChecklistItem(title: "Presentation", isCompleted: false)
+        let beforeNoOp = [first, second]
+
+        let storage = InMemoryChecklistStorage()
+        seedStorage(storage: storage, with: beforeNoOp)
+
+        let manager = ChecklistManager(storage: storage)
+        let historyBeforeNoOp = manager.history
+
+        manager.apply(operations: [])
+        let afterNoOp = manager.readAll()
+        let historyAfterNoOp = manager.history
+
+        XCTAssertEqual(afterNoOp, beforeNoOp)
+        XCTAssertEqual(historyAfterNoOp, historyBeforeNoOp)
+    }
+
+    func testApplySupportsRemoveOperation() throws {
+        let first = ChecklistItem(title: "Passport", isCompleted: false)
+        let second = ChecklistItem(title: "Presentation", isCompleted: false)
+        let storage = InMemoryChecklistStorage()
+        seedStorage(storage: storage, with: [first, second])
+        let manager = ChecklistManager(storage: storage)
+
+        manager.apply(operations: [
+            .remove(id: second.id),
+            .add(title: "Laundry"),
+            .edit(id: first.id, title: "Passport sent", isCompleted: true)
+        ])
+        let result = manager.readAll()
+        let added = result[1]
+
+        XCTAssertEqual(result, [
+            ChecklistItem(id: first.id, title: "Passport sent", isCompleted: true, createdAt: first.createdAt),
+            ChecklistItem(id: added.id, title: "Laundry", isCompleted: false, createdAt: added.createdAt)
+        ])
+        XCTAssertEqual(manager.history, [[first, second], result])
+    }
+
+    func testApplySupportsMoveOperation() throws {
+        let first = ChecklistItem(title: "First")
+        let second = ChecklistItem(title: "Second")
+        let third = ChecklistItem(title: "Third")
+        let storage = InMemoryChecklistStorage()
+        seedStorage(storage: storage, with: [first, second, third])
+        let manager = ChecklistManager(storage: storage)
+
+        manager.apply(operations: [
+            .move(source: IndexSet(integer: 0), destination: 3),
+            .remove(id: second.id),
+            .add(title: "Fourth")
+        ])
+        let result = manager.readAll()
+        let added = result[2]
+
+        XCTAssertEqual(result, [
+            third,
+            first,
+            ChecklistItem(id: added.id, title: "Fourth", isCompleted: false, createdAt: added.createdAt)
+        ])
+        XCTAssertEqual(manager.history, [[first, second, third], result])
+    }
+
     private func seedStorage(storage: InMemoryChecklistStorage, with items: [ChecklistItem]) {
         let encoder = JSONEncoder()
         let data = try! encoder.encode(items)
