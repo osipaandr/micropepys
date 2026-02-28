@@ -24,6 +24,7 @@ public struct ChecklistItem: Identifiable, Codable, Equatable, Sendable {
 
 public final class ChecklistManager: ObservableObject {
     @Published public private(set) var items: [ChecklistItem] = []
+    private var history: [[ChecklistItem]] = []
     private let storage: ChecklistStorage
     private let storageKey: String
 
@@ -56,11 +57,16 @@ public final class ChecklistManager: ObservableObject {
         }
     }
 
+    private func recordSnapshot() {
+        history.append(items)
+    }
+
     public func readAll() -> [ChecklistItem] {
         items
     }
 
     public func add(title: String) {
+        recordSnapshot()
         let item = ChecklistItem(title: title)
         items.append(item)
         persist()
@@ -68,12 +74,17 @@ public final class ChecklistManager: ObservableObject {
 
     public func remove(id: UUID) {
         if let index = items.firstIndex(where: { $0.id == id }) {
+            recordSnapshot()
             items.remove(at: index)
             persist()
         }
     }
 
     public func remove(at offsets: IndexSet) {
+        let validOffsets = offsets.filter { items.indices.contains($0) }
+        guard !validOffsets.isEmpty else { return }
+
+        recordSnapshot()
         for index in offsets.sorted(by: >) {
             guard items.indices.contains(index) else { continue }
             items.remove(at: index)
@@ -83,22 +94,32 @@ public final class ChecklistManager: ObservableObject {
 
     public func toggle(id: UUID) {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+        recordSnapshot()
         items[index].isCompleted.toggle()
         persist()
     }
 
     public func update(id: UUID, title: String? = nil, isCompleted: Bool? = nil) {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
+        let previous = items[index]
+        var updated = previous
         if let title = title {
-            items[index].title = title
+            updated.title = title
         }
         if let isCompleted = isCompleted {
-            items[index].isCompleted = isCompleted
+            updated.isCompleted = isCompleted
         }
+        guard updated != previous else { return }
+
+        recordSnapshot()
+        items[index] = updated
         persist()
     }
 
     public func clearCompleted() {
+        guard items.contains(where: { $0.isCompleted }) else { return }
+
+        recordSnapshot()
         items.removeAll(where: { $0.isCompleted })
         persist()
     }
@@ -106,7 +127,9 @@ public final class ChecklistManager: ObservableObject {
     public func move(from source: IndexSet, to destination: Int) {
         let validSource = source.sorted().filter { items.indices.contains($0) }
         guard !validSource.isEmpty else { return }
+        guard validSource.count > 1 || (validSource.first != destination && validSource.first != destination - 1) else { return }
 
+        recordSnapshot()
         var movingItems: [ChecklistItem] = []
         for index in validSource.reversed() {
             movingItems.insert(items.remove(at: index), at: 0)
@@ -114,6 +137,13 @@ public final class ChecklistManager: ObservableObject {
 
         let clampedDestination = max(0, min(destination, items.count))
         items.insert(contentsOf: movingItems, at: clampedDestination)
+        persist()
+    }
+
+    // Temporary stub. Will use in-memory snapshot history in follow-up work.
+    public func undo() {
+        guard let previous = history.popLast() else { return }
+        items = previous
         persist()
     }
 

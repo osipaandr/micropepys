@@ -159,6 +159,127 @@ final class ChecklistManagerTests: XCTestCase {
         XCTAssertEqual(result, [second, third, first])
     }
 
+    // MARK: - undo()
+
+    func testUndoWithNoHistoryDoesNothing() throws {
+        let storage = InMemoryChecklistStorage()
+        let manager = ChecklistManager(storage: storage)
+
+        manager.undo()
+        let result = manager.readAll()
+
+        XCTAssertEqual(result, [])
+    }
+
+    func testUndoRevertsAddMutation() throws {
+        let storage = InMemoryChecklistStorage()
+        let manager = ChecklistManager(storage: storage)
+        manager.add(title: "Task")
+
+        let expected: [ChecklistItem] = []
+        manager.undo()
+        let result = manager.readAll()
+
+        XCTAssertEqual(result, expected)
+    }
+
+    func testUndoRevertsToggleMutation() throws {
+        let item = ChecklistItem(title: "Task", isCompleted: false)
+        let storage = InMemoryChecklistStorage()
+        seedStorage(storage: storage, with: [item])
+        let manager = ChecklistManager(storage: storage)
+
+        manager.toggle(id: item.id)
+        manager.undo()
+        let result = manager.readAll()
+
+        XCTAssertEqual(result, [item])
+    }
+
+    func testUndoRevertsUpdateMutation() throws {
+        let item = ChecklistItem(title: "Old", isCompleted: false)
+        let storage = InMemoryChecklistStorage()
+        seedStorage(storage: storage, with: [item])
+        let manager = ChecklistManager(storage: storage)
+
+        manager.update(id: item.id, title: "New", isCompleted: true)
+        manager.undo()
+        let result = manager.readAll()
+
+        XCTAssertEqual(result, [item])
+    }
+
+    func testUndoRevertsRemoveByIDMutation() throws {
+        let first = ChecklistItem(title: "Keep")
+        let second = ChecklistItem(title: "Delete")
+        let storage = InMemoryChecklistStorage()
+        seedStorage(storage: storage, with: [first, second])
+        let manager = ChecklistManager(storage: storage)
+
+        manager.remove(id: second.id)
+        manager.undo()
+        let result = manager.readAll()
+
+        XCTAssertEqual(result, [first, second])
+    }
+
+    func testUndoRevertsRemoveAtMutation() throws {
+        let first = ChecklistItem(title: "First")
+        let second = ChecklistItem(title: "Second")
+        let third = ChecklistItem(title: "Third")
+        let storage = InMemoryChecklistStorage()
+        seedStorage(storage: storage, with: [first, second, third])
+        let manager = ChecklistManager(storage: storage)
+
+        manager.remove(at: IndexSet(integer: 1))
+        manager.undo()
+        let result = manager.readAll()
+
+        XCTAssertEqual(result, [first, second, third])
+    }
+
+    func testUndoRevertsClearCompletedMutation() throws {
+        let active = ChecklistItem(title: "Active", isCompleted: false)
+        let done = ChecklistItem(title: "Done", isCompleted: true)
+        let storage = InMemoryChecklistStorage()
+        seedStorage(storage: storage, with: [active, done])
+        let manager = ChecklistManager(storage: storage)
+
+        manager.clearCompleted()
+        manager.undo()
+        let result = manager.readAll()
+
+        XCTAssertEqual(result, [active, done])
+    }
+
+    func testUndoRevertsMoveMutation() throws {
+        let first = ChecklistItem(title: "First")
+        let second = ChecklistItem(title: "Second")
+        let third = ChecklistItem(title: "Third")
+        let storage = InMemoryChecklistStorage()
+        seedStorage(storage: storage, with: [first, second, third])
+        let manager = ChecklistManager(storage: storage)
+
+        manager.move(from: IndexSet(integer: 0), to: 3)
+        manager.undo()
+        let result = manager.readAll()
+
+        XCTAssertEqual(result, [first, second, third])
+    }
+
+    func testUndoAfterNoOpMutationDoesNothing() throws {
+        let item = ChecklistItem(title: "Task", isCompleted: false)
+        let storage = InMemoryChecklistStorage()
+        seedStorage(storage: storage, with: [item])
+        let manager = ChecklistManager(storage: storage)
+
+        manager.remove(id: UUID())
+        manager.undo()
+        let result = manager.readAll()
+
+        XCTAssertEqual(result, [item])
+    }
+
     private func seedStorage(storage: InMemoryChecklistStorage, with items: [ChecklistItem]) {
         let encoder = JSONEncoder()
         let data = try! encoder.encode(items)

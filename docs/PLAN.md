@@ -41,3 +41,15 @@ Expected outcome (or equivalent intent-preserving result):
 - macOS global hotkey, accessibility, and microphone permissions can fail or be denied.
 - Voice-to-text accuracy can affect intent parsing.
 - Multilingual accuracy and locale-specific phrasing can reduce intent precision.
+
+## Temporary Plan: Undo Implementation
+1. Add in-memory history of checklist snapshots (reset on app restart).
+- Revisit current checklist actions so every mutating action records history consistently.
+- Revisit and update tests around existing actions to reflect history-aware behavior.
+2. Implement undo operation with tests.
+- Add undo API and wire it to the frontend flow.
+- Add focused tests for undo correctness after add/edit/complete/delete/move operations.
+- Revisit temporary API simplifications made now:
+- No `canUndo` state flag yet.
+- No `@discardableResult` on undo-related APIs; call sites should handle return values explicitly.
+- `add` currently returns `Void` instead of created `ChecklistItem`.
