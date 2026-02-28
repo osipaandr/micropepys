@@ -2,7 +2,7 @@ import SwiftUI
 import MicropepysCore
 
 struct ChecklistWidgetView: View {
-    @StateObject private var manager = ChecklistManager()
+    @EnvironmentObject private var manager: ChecklistManager
     @State private var newTitle: String = ""
 
     var body: some View {
@@ -72,5 +72,6 @@ struct ChecklistWidgetView: View {
 
 #Preview {
     ChecklistWidgetView()
+        .environmentObject(ChecklistManager())
         .padding()
 }
