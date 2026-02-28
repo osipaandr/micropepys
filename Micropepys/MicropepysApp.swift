@@ -23,7 +23,7 @@ struct MicropepysApp: App {
                 Button("Undo") {
                     checklistManager.undo()
                 }
-                .keyboardShortcut("z", modifiers: .command)
+                .keyboardShortcut(ActionKeymap.keyboardShortcut(for: .undo))
             }
         }
     }
