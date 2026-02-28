@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		5525B93D2F294C470067F16A /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 5525B93C2F294C470067F16A /* .gitignore */; };
 		5525B93F2F294E210067F16A /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 5525B93E2F294E210067F16A /* README.md */; };
+		553A27842F52A7C800F9B9B9 /* MicropepysCore in Frameworks */ = {isa = PBXBuildFile; productRef = 553A27832F52A7C800F9B9B9 /* MicropepysCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +47,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				553A27842F52A7C800F9B9B9 /* MicropepysCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,6 +61,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		553A27822F52A7C800F9B9B9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		55A7ED932EBD3A6A00D833F0 = {
 			isa = PBXGroup;
 			children = (
@@ -67,6 +76,7 @@
 				55A7ED9D2EBD3A6A00D833F0 /* Products */,
 				5525B93C2F294C470067F16A /* .gitignore */,
 				5525B93E2F294E210067F16A /* README.md */,
+				553A27822F52A7C800F9B9B9 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -99,6 +109,7 @@
 			);
 			name = Micropepys;
 			packageProductDependencies = (
+				553A27832F52A7C800F9B9B9 /* MicropepysCore */,
 			);
 			productName = Micropepys;
 			productReference = 55A7ED9C2EBD3A6A00D833F0 /* Micropepys.app */;
@@ -155,6 +166,9 @@
 			);
 			mainGroup = 55A7ED932EBD3A6A00D833F0;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				553A27812F52A59700F9B9B9 /* XCLocalSwiftPackageReference "MicropepysCore" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 55A7ED9D2EBD3A6A00D833F0 /* Products */;
 			projectDirPath = "";
@@ -460,6 +474,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		553A27812F52A59700F9B9B9 /* XCLocalSwiftPackageReference "MicropepysCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = MicropepysCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		553A27832F52A7C800F9B9B9 /* MicropepysCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 553A27812F52A59700F9B9B9 /* XCLocalSwiftPackageReference "MicropepysCore" */;
+			productName = MicropepysCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 55A7ED942EBD3A6A00D833F0 /* Project object */;
 }
