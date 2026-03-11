@@ -7,7 +7,7 @@ Shared cross-app guidance lives in `../AGENTS.md`.
 ## Frontend Responsibilities
 - Send voice update requests to backend (`POST /voice-update`).
 - Apply returned structured operations to local checklist state.
-- Respect `confidence` and `needs_confirmation` in UX.
+- Respect `confidence` gating in UX.
 - Preserve or use metadata to support undo behavior.
 
 ## Operation Handling Rules
@@ -16,6 +16,6 @@ Shared cross-app guidance lives in `../AGENTS.md`.
 - If operation payload is ambiguous or missing required fields, fail safely and request confirmation.
 
 ## UX and Safety
-- Show transcript and intended changes when confirmation is required.
+- Show transcript and intended changes when backend returns no-op due low confidence.
 - Prefer reversible mutations and clear undo paths.
 - Keep user-visible behavior aligned with backend safety gating.

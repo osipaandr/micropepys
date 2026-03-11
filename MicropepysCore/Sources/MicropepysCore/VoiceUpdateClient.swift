@@ -127,14 +127,12 @@ public struct VoiceUpdateResponse: Decodable, Equatable, Sendable {
     public let transcript: String
     public let operations: [VoiceUpdateOperation]
     public let confidence: Double
-    public let needsConfirmation: Bool?
     public let transactionId: String?
 
     enum CodingKeys: String, CodingKey {
         case transcript
         case operations
         case confidence
-        case needsConfirmation = "needs_confirmation"
         case transactionId = "transaction_id"
     }
 }
