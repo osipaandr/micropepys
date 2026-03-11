@@ -6,7 +6,6 @@ final class VoiceUpdateClientTests: XCTestCase {
     func testVoiceUpdateRequestEncodesAudioMimeAndSnakeCaseKeys() throws {
         let request = VoiceUpdateRequest(
             audioData: Data([0x01, 0x02]),
-            audioMime: "audio/wav",
             languageHint: "en",
             checklistItems: [
                 VoiceUpdateChecklistItem(id: "item_1", title: "Passport", isCompleted: false)

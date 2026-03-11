@@ -25,6 +25,8 @@ public struct VoiceUpdateChecklistItem: Codable, Equatable, Sendable {
 }
 
 public struct VoiceUpdateRequest: Encodable, Equatable, Sendable {
+    public static let supportedAudioMime = "audio/wav"
+
     public let audioBase64: String
     public let audioMime: String
     public let languageHint: String?
@@ -32,25 +34,22 @@ public struct VoiceUpdateRequest: Encodable, Equatable, Sendable {
 
     public init(
         audioBase64: String,
-        audioMime: String,
         languageHint: String? = nil,
         checklistItems: [VoiceUpdateChecklistItem]? = nil
     ) {
         self.audioBase64 = audioBase64
-        self.audioMime = audioMime
+        self.audioMime = Self.supportedAudioMime
         self.languageHint = languageHint
         self.checklistItems = checklistItems
     }
 
     public init(
         audioData: Data,
-        audioMime: String,
         languageHint: String? = nil,
         checklistItems: [VoiceUpdateChecklistItem]? = nil
     ) {
         self.init(
             audioBase64: audioData.base64EncodedString(),
-            audioMime: audioMime,
             languageHint: languageHint,
             checklistItems: checklistItems
         )
@@ -58,13 +57,11 @@ public struct VoiceUpdateRequest: Encodable, Equatable, Sendable {
 
     public init(
         audioData: Data,
-        audioMime: String,
         languageHint: String? = nil,
         checklistItems: [ChecklistItem]
     ) {
         self.init(
             audioBase64: audioData.base64EncodedString(),
-            audioMime: audioMime,
             languageHint: languageHint,
             checklistItems: checklistItems.map(VoiceUpdateChecklistItem.init)
         )
