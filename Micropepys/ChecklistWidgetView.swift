@@ -3,6 +3,7 @@ import MicropepysCore
 
 struct ChecklistWidgetView: View {
     @EnvironmentObject private var manager: ChecklistManager
+    @EnvironmentObject private var voiceFlowController: VoiceFlowController
     @State private var newTitle: String = ""
     #if DEBUG
     @StateObject private var manualVoiceHarness = ManualVoiceTestHarness()
@@ -57,6 +58,10 @@ struct ChecklistWidgetView: View {
                 .accessibilityLabel("Add item")
             }
 
+            Divider()
+
+            VoiceUpdateControlsView()
+
             #if DEBUG
             Divider()
 
@@ -83,7 +88,10 @@ struct ChecklistWidgetView: View {
 }
 
 #Preview {
+    let manager = ChecklistManager()
+
     ChecklistWidgetView()
-        .environmentObject(ChecklistManager())
+        .environmentObject(manager)
+        .environmentObject(VoiceFlowController(checklistManager: manager))
         .padding()
 }

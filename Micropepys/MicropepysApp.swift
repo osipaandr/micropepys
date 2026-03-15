@@ -10,12 +10,20 @@ import MicropepysCore
 
 @main
 struct MicropepysApp: App {
-    @StateObject private var checklistManager = ChecklistManager()
+    @StateObject private var checklistManager: ChecklistManager
+    @StateObject private var voiceFlowController: VoiceFlowController
+
+    init() {
+        let checklistManager = ChecklistManager()
+        _checklistManager = StateObject(wrappedValue: checklistManager)
+        _voiceFlowController = StateObject(wrappedValue: VoiceFlowController(checklistManager: checklistManager))
+    }
 
     var body: some Scene {
         Window("Checklist", id: "main-window") {
             ChecklistWidgetView()
                 .environmentObject(checklistManager)
+                .environmentObject(voiceFlowController)
                 .overlayStyleWindow()
         }
         .commands {
@@ -24,6 +32,21 @@ struct MicropepysApp: App {
                     checklistManager.undo()
                 }
                 .keyboardShortcut(ActionKeymap.keyboardShortcut(for: .undo))
+            }
+
+            CommandMenu("Voice") {
+                Button(voiceFlowController.actionTitle) {
+                    Task {
+                        await voiceFlowController.toggleRecording()
+                    }
+                }
+                .keyboardShortcut(ActionKeymap.keyboardShortcut(for: .toggleVoiceUpdate))
+                .disabled(voiceFlowController.isSending)
+
+                Button("Cancel Voice Recording") {
+                    voiceFlowController.cancelRecording()
+                }
+                .disabled(!voiceFlowController.isRecording || voiceFlowController.isSending)
             }
         }
     }

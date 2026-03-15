@@ -2,6 +2,7 @@ import SwiftUI
 
 enum UserAction {
     case undo
+    case toggleVoiceUpdate
 }
 
 enum ActionKeymap {
@@ -9,6 +10,8 @@ enum ActionKeymap {
         switch action {
         case .undo:
             return KeyboardShortcut("z", modifiers: .command)
+        case .toggleVoiceUpdate:
+            return KeyboardShortcut("v", modifiers: [.command, .shift])
         }
     }
 }

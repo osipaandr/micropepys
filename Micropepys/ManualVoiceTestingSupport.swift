@@ -23,7 +23,6 @@ final class ManualVoiceTestHarness: ObservableObject {
         category: "ManualVoiceTesting"
     )
     nonisolated private static let fixturesBookmarkStorageKey = "ManualVoiceTestingFixturesDirectoryBookmark"
-    nonisolated private static let backendBaseURLStorageKey = "ManualVoiceTestingBackendBaseURL"
 
     @Published var backendBaseURLText: String
     @Published private(set) var fixturesDirectoryPath: String
@@ -95,7 +94,7 @@ final class ManualVoiceTestHarness: ObservableObject {
 
     func persistBackendBaseURL() {
         let trimmed = backendBaseURLText.trimmingCharacters(in: .whitespacesAndNewlines)
-        UserDefaults.standard.set(trimmed, forKey: Self.backendBaseURLStorageKey)
+        VoiceBackendConfiguration.persist(baseURLText: trimmed)
         Self.logger.info("Persisted backend URL \(trimmed, privacy: .public)")
     }
 
@@ -176,7 +175,7 @@ final class ManualVoiceTestHarness: ObservableObject {
             lastRawOperations = []
             lastAppliedOperations = []
             lastWarnings = []
-            lastErrorMessage = Self.describeError(error)
+            lastErrorMessage = VoiceUpdateErrorInterpreter.message(for: error)
             statusMessage = "Voice update request failed."
             Self.logger.error("Voice update failed for \(fixture.fileURL.lastPathComponent, privacy: .public): \(self.lastErrorMessage ?? error.localizedDescription, privacy: .public)")
         }
@@ -218,21 +217,11 @@ final class ManualVoiceTestHarness: ObservableObject {
     }
 
     private func normalizedBackendBaseURL() -> URL? {
-        let trimmed = backendBaseURLText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return nil }
-        return URL(string: trimmed)
+        VoiceBackendConfiguration.normalizedBaseURL(from: backendBaseURLText)
     }
 
     nonisolated private static func defaultBackendBaseURLText() -> String {
-        if
-            let persistedValue = UserDefaults.standard.string(forKey: backendBaseURLStorageKey)?
-                .trimmingCharacters(in: .whitespacesAndNewlines),
-            !persistedValue.isEmpty
-        {
-            return persistedValue
-        }
-
-        return FrontendLocalEnvironment.load().backendBaseURL ?? "http://127.0.0.1:8787"
+        VoiceBackendConfiguration.defaultBaseURLText()
     }
 
     nonisolated private static func defaultFixturesDirectoryURL() -> URL {
@@ -330,114 +319,11 @@ final class ManualVoiceTestHarness: ObservableObject {
         }
     }
 
-    private static func describeError(_ error: Error) -> String {
-        if let clientError = error as? VoiceUpdateClientError {
-            switch clientError {
-            case .invalidEndpoint:
-                return "Invalid /voice-update endpoint."
-            case .nonHTTPResponse:
-                return "Backend returned a non-HTTP response."
-            case let .requestFailed(statusCode, code, message):
-                if statusCode == 422, code == "stt_audio_decode_failed" {
-                    return "Backend could not decode this WAV file. Re-export the fixture as a standard PCM WAV file and try again."
-                }
-                return "HTTP \(statusCode) \(code ?? "backend_error"): \(message ?? "No message")"
-            case .decodingFailed:
-                return "Backend response could not be decoded."
-            }
-        }
-
-        return error.localizedDescription
-    }
-
     private static func mapVoiceOperations(
         _ voiceOperations: [VoiceUpdateOperation],
         onto initialItems: [ChecklistItem]
     ) -> ManualVoiceMappingResult {
-        var simulatedItems = initialItems
-        var mappedOperations: [ChecklistOperation] = []
-        var warnings: [String] = []
-
-        for operation in voiceOperations {
-            switch operation {
-            case let .complete(id):
-                guard let uuid = UUID(uuidString: id) else {
-                    warnings.append("Skipped complete for invalid UUID: \(id)")
-                    continue
-                }
-                guard let index = simulatedItems.firstIndex(where: { $0.id == uuid }) else {
-                    warnings.append("Skipped complete for unknown item id: \(id)")
-                    continue
-                }
-                guard !simulatedItems[index].isCompleted else { continue }
-
-                simulatedItems[index].isCompleted = true
-                mappedOperations.append(.complete(id: uuid))
-
-            case let .add(title):
-                simulatedItems.append(ChecklistItem(title: title))
-                mappedOperations.append(.add(title: title))
-
-            case let .edit(id, title, isCompleted):
-                guard let uuid = UUID(uuidString: id) else {
-                    warnings.append("Skipped edit for invalid UUID: \(id)")
-                    continue
-                }
-                guard let index = simulatedItems.firstIndex(where: { $0.id == uuid }) else {
-                    warnings.append("Skipped edit for unknown item id: \(id)")
-                    continue
-                }
-
-                let previous = simulatedItems[index]
-                var updated = previous
-                if let title {
-                    updated.title = title
-                }
-                if let isCompleted {
-                    updated.isCompleted = isCompleted
-                }
-                guard updated != previous else { continue }
-
-                simulatedItems[index] = updated
-                mappedOperations.append(.edit(id: uuid, title: title, isCompleted: isCompleted))
-
-            case let .remove(id):
-                guard let uuid = UUID(uuidString: id) else {
-                    warnings.append("Skipped remove for invalid UUID: \(id)")
-                    continue
-                }
-                guard let index = simulatedItems.firstIndex(where: { $0.id == uuid }) else {
-                    warnings.append("Skipped remove for unknown item id: \(id)")
-                    continue
-                }
-
-                simulatedItems.remove(at: index)
-                mappedOperations.append(.remove(id: uuid))
-
-            case let .move(id, toIndex):
-                guard let uuid = UUID(uuidString: id) else {
-                    warnings.append("Skipped move for invalid UUID: \(id)")
-                    continue
-                }
-                guard let sourceIndex = simulatedItems.firstIndex(where: { $0.id == uuid }) else {
-                    warnings.append("Skipped move for unknown item id: \(id)")
-                    continue
-                }
-
-                let source = IndexSet(integer: sourceIndex)
-                guard source.first != toIndex, source.first != toIndex - 1 else { continue }
-
-                var movingItems: [ChecklistItem] = []
-                for index in source.sorted(by: >) {
-                    movingItems.insert(simulatedItems.remove(at: index), at: 0)
-                }
-
-                let destination = max(0, min(toIndex, simulatedItems.count))
-                simulatedItems.insert(contentsOf: movingItems, at: destination)
-                mappedOperations.append(.move(source: source, destination: destination))
-            }
-        }
-
-        return ManualVoiceMappingResult(operations: mappedOperations, warnings: warnings)
+        let result = VoiceUpdateOperationMapper.map(voiceOperations, onto: initialItems)
+        return ManualVoiceMappingResult(operations: result.operations, warnings: result.warnings)
     }
 }

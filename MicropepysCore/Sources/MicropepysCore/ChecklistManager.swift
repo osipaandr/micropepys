@@ -22,7 +22,7 @@ public struct ChecklistItem: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
-public enum ChecklistOperation: Sendable {
+public enum ChecklistOperation: Sendable, Equatable {
     case complete(id: UUID)
     case add(title: String)
     case edit(id: UUID, title: String? = nil, isCompleted: Bool? = nil)
