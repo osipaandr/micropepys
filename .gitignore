@@ -58,6 +58,14 @@ playground.xcworkspace
 # JetBrains IDE
 .idea/
 
+# Local frontend config
+.env
+!.env.example
+
 # Other
 *.swp
 *.lock
+
+# Manual voice fixtures
+docs/voice-fixtures/*
+!docs/voice-fixtures/.gitkeep

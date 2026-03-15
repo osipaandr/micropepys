@@ -4,6 +4,9 @@ import MicropepysCore
 struct ChecklistWidgetView: View {
     @EnvironmentObject private var manager: ChecklistManager
     @State private var newTitle: String = ""
+    #if DEBUG
+    @StateObject private var manualVoiceHarness = ManualVoiceTestHarness()
+    #endif
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -53,6 +56,15 @@ struct ChecklistWidgetView: View {
                 .tint(.accentColor)
                 .accessibilityLabel("Add item")
             }
+
+            #if DEBUG
+            Divider()
+
+            ManualVoiceTestingView(
+                harness: manualVoiceHarness,
+                manager: manager
+            )
+            #endif
         }
         .padding(12)
         .frame(maxWidth: .infinity,
