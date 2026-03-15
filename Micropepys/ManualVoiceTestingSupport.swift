@@ -338,6 +338,9 @@ final class ManualVoiceTestHarness: ObservableObject {
             case .nonHTTPResponse:
                 return "Backend returned a non-HTTP response."
             case let .requestFailed(statusCode, code, message):
+                if statusCode == 422, code == "stt_audio_decode_failed" {
+                    return "Backend could not decode this WAV file. Re-export the fixture as a standard PCM WAV file and try again."
+                }
                 return "HTTP \(statusCode) \(code ?? "backend_error"): \(message ?? "No message")"
             case .decodingFailed:
                 return "Backend response could not be decoded."
