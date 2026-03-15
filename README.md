@@ -18,8 +18,10 @@ The goal of this project is to create a tool for easy task management that is al
 - Focus on macOS only for now.
 
 ## Current State
-- The app currently provides an overlay to-do list.
-- Task editing is manual.
+- The app provides an overlay to-do list with manual editing.
+- Voice updates are wired through the app to the backend and applied as one undoable transaction.
+- `Cmd+Shift+V` starts/stops a voice update recording flow.
+- `Cmd+,` opens Settings, where voice language can be pinned to `🇬🇧 english` or `🇷🇺 русский`.
 
 ## Target Workflow
 1. User presses a global hotkey while working in any app.

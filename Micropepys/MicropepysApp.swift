@@ -12,17 +12,26 @@ import MicropepysCore
 struct MicropepysApp: App {
     @StateObject private var checklistManager: ChecklistManager
     @StateObject private var voiceFlowController: VoiceFlowController
+    @StateObject private var voiceSettings: VoiceSettings
 
     init() {
         let checklistManager = ChecklistManager()
+        let voiceSettings = VoiceSettings()
         _checklistManager = StateObject(wrappedValue: checklistManager)
-        _voiceFlowController = StateObject(wrappedValue: VoiceFlowController(checklistManager: checklistManager))
+        _voiceSettings = StateObject(wrappedValue: voiceSettings)
+        _voiceFlowController = StateObject(
+            wrappedValue: VoiceFlowController(
+                checklistManager: checklistManager,
+                voiceSettings: voiceSettings
+            )
+        )
     }
 
     var body: some Scene {
         Window("Checklist", id: "main-window") {
             ChecklistWidgetView()
                 .environmentObject(checklistManager)
+                .environmentObject(voiceSettings)
                 .environmentObject(voiceFlowController)
                 .overlayStyleWindow()
         }
@@ -48,6 +57,11 @@ struct MicropepysApp: App {
                 }
                 .disabled(!voiceFlowController.isRecording || voiceFlowController.isSending)
             }
+        }
+
+        Settings {
+            VoicePreferencesView()
+                .environmentObject(voiceSettings)
         }
     }
 }

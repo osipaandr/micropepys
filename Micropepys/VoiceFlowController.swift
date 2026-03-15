@@ -26,10 +26,12 @@ final class VoiceFlowController: ObservableObject {
     @Published private(set) var lastErrorMessage: String?
 
     private let checklistManager: ChecklistManager
+    private let voiceSettings: VoiceSettings
     private let recorder = VoiceAudioRecorder()
 
-    init(checklistManager: ChecklistManager) {
+    init(checklistManager: ChecklistManager, voiceSettings: VoiceSettings) {
         self.checklistManager = checklistManager
+        self.voiceSettings = voiceSettings
     }
 
     var isRecording: Bool {
@@ -113,6 +115,7 @@ final class VoiceFlowController: ObservableObject {
 
             let request = VoiceUpdateRequest(
                 audioData: audioData,
+                languageHint: voiceSettings.language.languageHint,
                 checklistItems: checklistManager.readAll()
             )
             let response = try await VoiceUpdateClient(baseURL: baseURL).sendVoiceUpdate(request)

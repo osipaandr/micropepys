@@ -89,9 +89,11 @@ struct ChecklistWidgetView: View {
 
 #Preview {
     let manager = ChecklistManager()
+    let voiceSettings = VoiceSettings()
 
     ChecklistWidgetView()
         .environmentObject(manager)
-        .environmentObject(VoiceFlowController(checklistManager: manager))
+        .environmentObject(voiceSettings)
+        .environmentObject(VoiceFlowController(checklistManager: manager, voiceSettings: voiceSettings))
         .padding()
 }
